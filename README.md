@@ -1,7 +1,7 @@
 # blockcahin_vote
 
 ### Branches:
-* master - only working commits
+* master - upstream
 * transaction - transaction class
 * blockchain_class - blockchain class
 * node - node class and flask server
