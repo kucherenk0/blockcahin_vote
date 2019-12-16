@@ -3,7 +3,7 @@ import json
 from time import time
 from urllib.parse import urlparse
 from uuid import uuid4
-from typing import NewType
+from typing import NewType, List, Optional
 
 import requests
 from flask import Flask, jsonify, request
@@ -21,15 +21,20 @@ class Block:
         self.transaction = transaction
         self.proof = proof
         self.prev_hash = prev_hash
+        self.hash = self.hash(self)
         
     def dict(self):
         block = {'index': self.index,
                  'transaction': self.transaction.dict(),
                  'proof': self.proof,
                  'prev_hash': self.prev_hash}
-        return block    
+        return block
     
-    def hash(self):
+    def validate(self):
+        return self.hash(self) == self.hash
+    
+    @staticmethod
+    def hash(block):
         """
         Creates a SHA-256 hash of a Block
 
@@ -37,7 +42,7 @@ class Block:
         :return: str hash of the block
         """
         # We must make sure that the Dictionary is Ordered, or we'll have inconsistent hashes
-        block_string = json.dumps(self.dict(), sort_keys=True).encode()
+        block_string = json.dumps(block.dict(), sort_keys=True).encode()
         return hashlib.sha256(block_string).hexdigest()
 
 
@@ -46,11 +51,21 @@ class Blockchain:
     def __init__(self):
         self.transactions_pull = []
         self.chain = []
+        # Genesis block
+        self.chain.append(Block(index=0,
+                                transaction=None,
+                                proof=100,
+                                prev_hash=1))
 
-        # Create the genesis block
-        self.new_block(previous_hash='1', proof=100)
-
-    def valid_chain(self, chain):
+    def add_block(self, block: Block):
+        """
+        Adds an already proofed Block to the chain
+        """
+        self.chain.append(block)
+        return block.index
+    
+    #TODO
+    def valid_chain(self, chain: Optional[List[Block]] = None):
         """
         Determine if a given blockchain is valid
 
@@ -81,62 +96,29 @@ class Blockchain:
 
         return True
 
-    def resolve_conflicts(self):
+    def resolve_conflicts(self, blocks: List[Block]):
         """
-        This is our consensus algorithm, it resolves conflicts
-        by replacing our chain with the longest one in the network.
-
-        :return: True if our chain was replaced, False if not
+        :return: List[int], the indexes of removed blocks.
+            If it is empty, then no blocks were removed
         """
+        if not self.valid_chain(blocks):
+            return []
+        ind = self.last_ind
+        if blocks[-1].index <= ind:
+            return []
+        block_ind = blocks[0].index
+        if self.chain[block_ind].compare_to(blocks[0]):
+            for i in range(self.last_ind, block_ind, -1):
+                self.transactions_pull.append(self.chain[i].transaction)
+                del self.chain[i]
+            for i, block in enumerate(blocks):
+                if i == 0:
+                    continue
+                self.chain.append(block)
+            return self.chain[block_ind+1:]
+        else:
+            return []
 
-        neighbours = self.nodes
-        new_chain = None
-
-        # We're only looking for chains longer than ours
-        max_length = len(self.chain)
-
-        # Grab and verify the chains from all the nodes in our network
-        for node in neighbours:
-            response = requests.get(f'http://{node}/chain')
-
-            if response.status_code == 200:
-                length = response.json()['length']
-                chain = response.json()['chain']
-
-                # Check if the length is longer and the chain is valid
-                if length > max_length and self.valid_chain(chain):
-                    max_length = length
-                    new_chain = chain
-
-        # Replace our chain if we discovered a new, valid chain longer than ours
-        if new_chain:
-            self.chain = new_chain
-            return True
-
-        return False
-
-    def new_block(self, proof, previous_hash):
-        """
-        Create a new Block in the Blockchain
-
-        :param proof: The proof given by the Proof of Work algorithm
-        :param previous_hash: Hash of previous Block
-        :return: New Block
-        """
-
-        block = {
-            'index': len(self.chain) + 1,
-            'timestamp': time(),
-            'transactions': self.transactions_pull,
-            'proof': proof,
-            'previous_hash': previous_hash or self.hash(self.chain[-1]),
-        }
-
-        # Reset the current list of transactions
-        self.transactions_pull = []
-
-        self.chain.append(block)
-        return block
 
     def new_transaction(self, sender, recipient, amount):
         """
@@ -158,7 +140,11 @@ class Blockchain:
     @property
     def last_block(self):
         return self.chain[-1]
-
+    
+    @property
+    def last_ind(self):
+        assert self.last_block.index == len(self.chain) - 1
+        return self.last_block.index
     
     def proof_of_work(self, last_block):
         """
