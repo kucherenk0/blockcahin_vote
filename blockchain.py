@@ -3,10 +3,12 @@ import json
 from time import time
 from urllib.parse import urlparse
 from uuid import uuid4
+from typing import NewType
 
 import requests
 from flask import Flask, jsonify, request
 
+BlockId = NewType('BlockId', int)
 
 class Blockchain:
     def __init__(self):
