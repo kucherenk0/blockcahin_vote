@@ -10,6 +10,38 @@ from flask import Flask, jsonify, request
 
 BlockId = NewType('BlockId', int)
 
+
+class Block:
+    def __init__(self,
+                 index: int,
+                 transaction: Transaction,
+                 proof: int,
+                 prev_hash: str):
+        self.index = index
+        self.transaction = transaction
+        self.proof = proof
+        self.prev_hash = prev_hash
+        
+    def dict(self):
+        block = {'index': self.index,
+                 'transaction': self.transaction.dict(),
+                 'proof': self.proof,
+                 'prev_hash': self.prev_hash}
+        return block    
+    
+    def hash(self):
+        """
+        Creates a SHA-256 hash of a Block
+
+        :param block: Block
+        :return: str hash of the block
+        """
+        # We must make sure that the Dictionary is Ordered, or we'll have inconsistent hashes
+        block_string = json.dumps(self.dict(), sort_keys=True).encode()
+        return hashlib.sha256(block_string).hexdigest()
+
+
+
 class Blockchain:
     def __init__(self):
         self.transactions_pull = []
@@ -127,18 +159,7 @@ class Blockchain:
     def last_block(self):
         return self.chain[-1]
 
-    @staticmethod
-    def hash(block):
-        """
-        Creates a SHA-256 hash of a Block
-
-        :param block: Block
-        """
-
-        # We must make sure that the Dictionary is Ordered, or we'll have inconsistent hashes
-        block_string = json.dumps(block, sort_keys=True).encode()
-        return hashlib.sha256(block_string).hexdigest()
-
+    
     def proof_of_work(self, last_block):
         """
         Simple Proof of Work Algorithm:
