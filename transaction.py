@@ -11,7 +11,7 @@ class Transaction:
         self.reciever = reciever
         self.input = input
         self.amount = amount
-        
+
     def sign(self, key: str):
         '''
         Добавить электронную подпись
@@ -24,4 +24,13 @@ class Transaction:
         с помощью лектронной подписи
         '''        
         pass
+    
+    def dict():
+        signature = getattr(self, 'signature', 'unsigned')
+        transaction = {'sender': self.sender,
+                       'reciever': self.reciever,
+                       'input': self.input,
+                       'amount': self.amount,
+                       'signature': signature}
+        return transaction
     
