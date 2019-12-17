@@ -83,13 +83,13 @@ class Blockchain:
         for block in chain:
             validity = validity and block.validate()
             validity = validity and block.transaction.validate_signature()
-            # TODO: add validation of tranasction inputs
+            validity = validity and self.validate_transaction(chain)
         
         # Check hash sequences
         length = len(chain)
         for i in range(length - 1):
             validity = validity and (chain[i+1].prev_hash == chain[i].hash)
-        
+        return validity
 
     def resolve_conflicts(self, blocks: List[Block]):
         """
