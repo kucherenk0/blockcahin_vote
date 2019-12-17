@@ -83,7 +83,8 @@ class Blockchain:
         for block in chain:
             validity = validity and block.validate()
             validity = validity and block.transaction.validate_signature()
-            validity = validity and self.validate_transaction(chain)
+            validity = validity and (self.validate_transaction(block.transaction, chain) or
+                                     self.validate_transaction(block.transaction))
         
         # Check hash sequences
         length = len(chain)
@@ -114,9 +115,23 @@ class Blockchain:
         else:
             return []
 
-
-    def validate_transaction(self, transaction: Transaction):
-        pass
+    def validate_transaction(self, transaction: Transaction,
+                             chain: Optional[List[Block]] = None):
+        chain = chain if chain else self.chain
+        sender = transaction.sender
+        transactions = [block.transaction for block in chain if
+                        block.transaction.sender == sender or
+                        block.transaction.reciever == sender]
+        summ = 0
+        for trans in transactions:
+            if trans.sender == sender:
+                summ -= trans.amount
+            elif trans.reciever == sender:
+                summ += trans.amount
+        if summ > 0:
+            return True
+        else:
+            return False
 
     def new_transaction(self, sender, recipient, amount):
         """
