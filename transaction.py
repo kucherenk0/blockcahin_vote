@@ -26,6 +26,9 @@ class Transaction:
                 self.reciever == other.reciever and
                 self.amount == other.amount)
 
+    def __str__(self):
+        return str(self.dict())
+    
     def sign(self, prv_key: str):
         '''
         Добавить электронную подпись
