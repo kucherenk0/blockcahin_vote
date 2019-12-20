@@ -2,22 +2,23 @@ from config import ELLIPTIC_CURVE
 from pygost import gost34112012256
 from pygost.gost3410 import verify, pub_unmarshal, sign, hexdec
 from pygost.utils import hexenc
+from typing import List
 
 import json
 
 
 class Transaction:
     def __init__(self,
-                 sender: list,
+                 sender: List[int],
                  reciever: str,
                  amount: int,
                  signature: str = None):
         signature = signature if signature else 'unsigned'
         self._signature = signature
         self.sender = self._list_to_string(sender)
-        self._sender = tuple(sender)
+        self._sender = tuple([int(i) for i in sender])
         self.reciever = reciever
-        self.amount = amount
+        self.amount = int(amount)
 
     def __eq__(self, other):
         if not isinstance(other, Transaction):

@@ -3,8 +3,9 @@ import json
 from time import time
 from typing import List, Optional
 from transaction import Transaction
-from config import TARGET, DEFAULT_PROOF, DEFAULT_TRANSACTION, FAIL, SUCCESS
+from config import TARGET, DEFAULT_PROOF, FAIL, SUCCESS, DEFAULT_HASH
 
+DEFAULT_TRANSACTION = Transaction([10, 10], 'genesys', 0)
 
 
 class Block:
@@ -12,13 +13,14 @@ class Block:
                  index: int,
                  transaction: Transaction,
                  proof: int,
-                 prev_hash: str):
+                 prev_hash: str,
+                 hash: Optional[str] = None):
         self.index = index
         self.transaction = transaction
         self.timestamp = time()
         self.proof = proof
         self.prev_hash = prev_hash
-        self.hash = self.hash(self)
+        self.hash = hash if hash else self.hash(self)
         
     def __str__(self):
         return str(self.dict())
@@ -28,7 +30,8 @@ class Block:
                  'transaction': self.transaction.dict(),
                  'timestamp': self.timestamp,
                  'proof': self.proof,
-                 'prev_hash': self.prev_hash}
+                 'prev_hash': self.prev_hash,
+                 'hash': self.hash}
         return block
     
     def validate(self):
@@ -46,6 +49,18 @@ class Block:
         block_string = json.dumps(block.dict(), sort_keys=True).encode()
         return hashlib.sha256(block_string).hexdigest()
 
+    @staticmethod
+    def from_json_dict(chain):
+        chain_ = []
+        for block in chain:
+            block_ = Block(index=int(block['index']),
+                           transaction=Transaction(**block['transaction']),
+                           proof=int(block['proof']),
+                           prev_hash=block['prev_hash'],
+                           hash=block['hash'])
+            chain_.append(block_)
+        return chain_
+
 
 
 class Blockchain:
@@ -57,9 +72,11 @@ class Blockchain:
         self.chain.append(Block(index=0,
                                 transaction=DEFAULT_TRANSACTION,
                                 proof=DEFAULT_PROOF,
-                                prev_hash=1))
+                                prev_hash=1,
+                                hash=DEFAULT_HASH))
         self.dump()
 
+    # DONE
     def __str__(self):
         output = {'transactions_pull': [str(i) for i in 
                                         self.transactions_pull],
