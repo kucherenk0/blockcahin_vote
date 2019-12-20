@@ -13,10 +13,18 @@ class Transaction:
                  amount: int,
                  signature: str = None):
         signature = signature if signature else 'unsigned'
-        self.signature = signature
+        self._signature = signature
         self.sender = sender
         self.reciever = reciever
         self.amount = amount
+
+    def __eq__(self, other: Transaction):
+        if not isinstance(other, Transaction):
+            return False
+        return (self._signature == other._signature and
+                self.sender == other.sender and
+                self.reciever == other.reciever and
+                self.amount == other.amount)
 
     def sign(self, prv_key: str):
         '''
@@ -41,5 +49,5 @@ class Transaction:
         transaction = {'sender': self.sender,
                        'reciever': self.reciever,
                        'amount': self.amount,
-                       'signature': self.signature}
+                       'signature': self._signature}
         return transaction
