@@ -63,7 +63,7 @@ class Transaction:
         return (str(lst[0]) + str(lst[1]))[-10:]
 
     def to_json(self):
-        result = {'sender': self._sender,
+        return {'sender': self._sender,
                   'reciever': self.reciever,
                   'amount': self.amount,
                   'signature': self._signature
