@@ -1,7 +1,6 @@
-from blockchain import BlockId
 from config import ELEPTIC_CURVE
 from pygost import gost34112012256
-from pygost.gost3410 import verify, pub_unmarshal
+from pygost.gost3410 import verify, pub_unmarshal, sign, hexdec
 
 import json
 
@@ -28,25 +27,32 @@ class Transaction:
 
     def __str__(self):
         return str(self.dict())
-    
-    def sign(self, prv_key: str):
+
+    def sign(self, prv_key: int):
         '''
-        Добавить электронную подпись
+        Создается электронная подпись, в данных для подписи учитываются только
+        sender, reciever и amount
         '''
-        # self._signature
-        pass
+        data = self.str_public_data()
+        hashed_data = gost34112012256.new(data).digest()
+        self._signature = sign(ELEPTIC_CURVE, prv_key, hashed_data, mode=2012)
 
     def verify_signature(self):
         '''
         Добавить проверку корректности транзакции
         с помощью лектронной подписи
         '''
-        pub_key = pub_unmarshal(self.sender.encode())
-        data_for_signing = json.dump(self.dict(), sort_keys=True)
-        dgst = gost34112012256.new(data_for_signing).digest()
+        pub_key = pub_unmarshal(hexdec(self.sender.encode()))
+        data_for_signing = self.str_public_data()
+        hashed_data = gost34112012256.new(data_for_signing).digest()
         encoded_sign = self.signature.encode()
+        return verify(ELEPTIC_CURVE, pub_key, hashed_data, encoded_sign,
+                      mode=2012)
 
-        return verify(ELEPTIC_CURVE, pub_key, dgst, encoded_sign, mode=2012)
+    def str_public_data(self):
+        return json.dumps({'sender': self.sender,
+                           'reciever': self.reciever,
+                           'amount': self.amount}, sort_keys=True)
 
     def dict(self):
         transaction = {'sender': self.sender,
