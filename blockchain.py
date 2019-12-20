@@ -67,6 +67,7 @@ class Blockchain:
                                 transaction=DEFAULT_TRANSACTION,
                                 proof=DEFAULT_PROOF,
                                 prev_hash=1))
+        self.dump()
 
     def __str__(self):
         output = {'transactions_pull': [str(i) for i in 
@@ -76,6 +77,11 @@ class Blockchain:
         return str(output)
         
     # DONE
+    def dump(self):
+        with open('blockchain_dump.txt', 'w') as fd:
+            fd.write(str(self))
+        
+    # DONE
     def add_block(self, block: Block):
         """
         Adds an already proofed Block to the chain
@@ -83,6 +89,7 @@ class Blockchain:
         if block.index == self.last_ind + 1 and \
             block.prev_hash == self.last_block.hash:
             self.chain.append(block)
+            self.dump()
             return block.index
         else:
             return None
@@ -93,7 +100,9 @@ class Blockchain:
                 self.validate_transaction(transaction) and
                 transaction not in self.transactions_pull):
             return FAIL
-        self.transactions_pull.append(transaction)    
+        self.transactions_pull.append(transaction)
+        self.dump()
+        return SUCCESS
     
     # DONE
     def valid_chain(self, chain: Optional[List[Block]] = None):
@@ -138,6 +147,7 @@ class Blockchain:
                 if i == 0:
                     continue
                 self.chain.append(block)
+            self.dump()
             return self.chain[block_ind+1:]
         else:
             return []
@@ -161,32 +171,14 @@ class Blockchain:
         else:
             return False
 
-    # DONE
-    def new_transaction(self, sender: str,
-                        reciever: str,
-                        amount: int,
-                        signature: str):
-        """
-        Creates a new transaction to go into the next mined Block
-        
-        :param sender: Address of the Sender
-        :param recipient: Address of the Recipient
-        :param amount: Amount
-        :return: The index of the Block that will hold this transaction
-        """
-        transaction = Transaction(sender, reciever, amount, signature)
-        if not self.validate_transaction(transaction):
-            return FAIL
-        self.transactions_pull.append(transaction)
-        return SUCCESS
-
     # TODO: Update this shit for multiprocessing!
     def new_block(self):
         '''
         Creates a new block and mines it. Then it adds it ti the chain
         '''
         block = self.proof_of_work()
-        self.add_block(block)
+        if not self.add_block(block):
+            raise ValueError(f'Something wrong with the block:\n {block}')
         return block.index
     
     @property
