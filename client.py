@@ -3,7 +3,7 @@ from flask import render_template
 from flask import request
 from os import urandom
 from pygost.gost3410 import prv_unmarshal
-from config import candidates_list
+from config import CANDIDATES_LIST
 
 
 app = Flask(__name__)
