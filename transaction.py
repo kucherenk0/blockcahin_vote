@@ -1,23 +1,25 @@
 from config import ELEPTIC_CURVE
 from pygost import gost34112012256
 from pygost.gost3410 import verify, pub_unmarshal, sign, hexdec
+from pygost.utils import hexenc
 
 import json
 
 
 class Transaction:
     def __init__(self,
-                 sender: str,
+                 sender: list,
                  reciever: str,
                  amount: int,
                  signature: str = None):
         signature = signature if signature else 'unsigned'
         self._signature = signature
-        self.sender = sender
+        self.sender = self._list_to_string(sender)
+        self._sender = tuple(sender)
         self.reciever = reciever
         self.amount = amount
 
-    def __eq__(self, other: Transaction):
+    def __eq__(self, other):
         if not isinstance(other, Transaction):
             return False
         return (self._signature == other._signature and
@@ -33,26 +35,32 @@ class Transaction:
         Создается электронная подпись, в данных для подписи учитываются только
         sender, reciever и amount
         '''
-        data = self.str_public_data()
+        data = self.bytes_public_data()
         hashed_data = gost34112012256.new(data).digest()
-        self._signature = sign(ELEPTIC_CURVE, prv_key, hashed_data, mode=2012)
+        signature = sign(ELEPTIC_CURVE, prv_key, hashed_data, mode=2012)
+        self._signature = hexenc(signature)
 
     def verify_signature(self):
         '''
         Добавить проверку корректности транзакции
         с помощью лектронной подписи
         '''
-        pub_key = pub_unmarshal(hexdec(self.sender.encode()))
-        data_for_signing = self.str_public_data()
-        hashed_data = gost34112012256.new(data_for_signing).digest()
-        encoded_sign = self.signature.encode()
-        return verify(ELEPTIC_CURVE, pub_key, hashed_data, encoded_sign,
+
+        pub_key = self._sender
+        data = self.bytes_public_data()
+        hashed_data = gost34112012256.new(data).digest()
+        decoded_sign = hexdec(self._signature)
+        return verify(ELEPTIC_CURVE, pub_key, hashed_data, decoded_sign,
                       mode=2012)
 
-    def str_public_data(self):
+    def bytes_public_data(self):
         return json.dumps({'sender': self.sender,
                            'reciever': self.reciever,
-                           'amount': self.amount}, sort_keys=True)
+                           'amount': self.amount}, sort_keys=True).encode()
+
+    def _list_to_string(self, lst: list):
+        return (str(lst[0]) + str(lst[1]))[-10:]
+
 
     def dict(self):
         transaction = {'sender': self.sender,
