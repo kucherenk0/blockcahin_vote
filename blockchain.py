@@ -4,11 +4,13 @@ from time import time
 from urllib.parse import urlparse
 from uuid import uuid4
 from typing import NewType, List, Optional
+from transaction import Transaction
 
 import requests
 from flask import Flask, jsonify, request
 
 BlockId = NewType('BlockId', int)
+Target = 10e8
 
 
 class Block:
@@ -51,6 +53,7 @@ class Blockchain:
     def __init__(self):
         self.transactions_pull = []
         self.chain = []
+        self.target = Target
         # Genesis block
         self.chain.append(Block(index=0,
                                 transaction=None,
@@ -61,40 +64,33 @@ class Blockchain:
         """
         Adds an already proofed Block to the chain
         """
-        self.chain.append(block)
-        return block.index
-    
-    #TODO
-    def valid_chain(self, chain: Optional[List[Block]] = None):
+        if block.index == self.last_ind + 1 and \
+            block.prev_hash == self.last_block.hash:
+            self.chain.append(block)
+            return block.index
+        else:
+            return None
+
+    def valid_chain(self, chain: Optional[List[Block]] = self.chain):
         """
         Determine if a given blockchain is valid
 
         :param chain: A blockchain
         :return: True if valid, False if not
         """
-
-        last_block = chain[0]
-        current_index = 1
-
-        while current_index < len(chain):
-            block = chain[current_index]
-            print(f'{last_block}')
-            print(f'{block}')
-            print("\n-----------\n")
-            # Check that the hash of the block is correct
-            last_block_hash = self.hash(last_block)
-            if block['previous_hash'] != last_block_hash:
-                return False
-
-            # Check that the Proof of Work is correct
-            if not self.valid_proof(last_block['proof'], block['proof'],
-                                    last_block_hash):
-                return False
-
-            last_block = block
-            current_index += 1
-
-        return True
+        # Check if blocks themselves are correct
+        validity = True
+        for block in chain:
+            validity = validity and block.validate()
+            validity = validity and block.transaction.validate_signature()
+            validity = validity and (self.validate_transaction(block.transaction, chain) or
+                                     self.validate_transaction(block.transaction))
+        
+        # Check hash sequences
+        length = len(chain)
+        for i in range(length - 1):
+            validity = validity and (chain[i+1].prev_hash == chain[i].hash)
+        return validity
 
     def resolve_conflicts(self, blocks: List[Block]):
         """
@@ -119,6 +115,23 @@ class Blockchain:
         else:
             return []
 
+    def validate_transaction(self, transaction: Transaction,
+                             chain: Optional[List[Block]] = None):
+        chain = chain if chain else self.chain
+        sender = transaction.sender
+        transactions = [block.transaction for block in chain if
+                        block.transaction.sender == sender or
+                        block.transaction.reciever == sender]
+        summ = 0
+        for trans in transactions:
+            if trans.sender == sender:
+                summ -= trans.amount
+            elif trans.reciever == sender:
+                summ += trans.amount
+        if summ > 0:
+            return True
+        else:
+            return False
 
     def new_transaction(self, sender, recipient, amount):
         """
