@@ -2,7 +2,7 @@
 .venv
 *venv*
 .DS_Store
-*.pycache
+__pycache__
 .idea
 signature_test.py
 for_test.py
