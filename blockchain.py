@@ -9,8 +9,11 @@ from transaction import Transaction
 import requests
 from flask import Flask, jsonify, request
 
-BlockId = NewType('BlockId', int)
-Target = 10e8
+TARGET = 0x00000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+DEFAULT_PROOF = 100
+DEFAULT_TRANSACTION = Transaction('genesys', 'genesys', 0)
+FAIL = -1
+SUCCESS = 0
 
 
 class Block:
@@ -21,13 +24,18 @@ class Block:
                  prev_hash: str):
         self.index = index
         self.transaction = transaction
+        self.timestamp = time()
         self.proof = proof
         self.prev_hash = prev_hash
         self.hash = self.hash(self)
         
+    def __str__(self):
+        return str(self.dict())
+        
     def dict(self):
         block = {'index': self.index,
                  'transaction': self.transaction.dict(),
+                 'timestamp': self.timestamp,
                  'proof': self.proof,
                  'prev_hash': self.prev_hash}
         return block
@@ -53,13 +61,21 @@ class Blockchain:
     def __init__(self):
         self.transactions_pull = []
         self.chain = []
-        self.target = Target
+        self.target = TARGET
         # Genesis block
         self.chain.append(Block(index=0,
-                                transaction=None,
-                                proof=100,
+                                transaction=DEFAULT_TRANSACTION,
+                                proof=DEFAULT_PROOF,
                                 prev_hash=1))
 
+    def __str__(self):
+        output = {'transactions_pull': [str(i) for i in 
+                                        self.transactions_pull],
+                  'chain': [str(i) for i in self.chain],
+                  'traget': self.target}
+        return str(output)
+        
+    # DONE
     def add_block(self, block: Block):
         """
         Adds an already proofed Block to the chain
@@ -71,13 +87,23 @@ class Blockchain:
         else:
             return None
 
-    def valid_chain(self, chain: Optional[List[Block]] = self.chain):
+    # DONE
+    def add_transaction(self, transaction: Transaction):
+        if not (transaction.verify_signature() and 
+                self.validate_transaction(transaction) and
+                transaction not in self.transactions_pull):
+            return FAIL
+        self.transactions_pull.append(transaction)    
+    
+    # DONE
+    def valid_chain(self, chain: Optional[List[Block]] = None):
         """
         Determine if a given blockchain is valid
 
         :param chain: A blockchain
         :return: True if valid, False if not
         """
+        chain = chain if chain else self.chain
         # Check if blocks themselves are correct
         validity = True
         for block in chain:
@@ -92,6 +118,7 @@ class Blockchain:
             validity = validity and (chain[i+1].prev_hash == chain[i].hash)
         return validity
 
+    # DONE
     def resolve_conflicts(self, blocks: List[Block]):
         """
         :return: List[int], the indexes of removed blocks.
@@ -114,7 +141,8 @@ class Blockchain:
             return self.chain[block_ind+1:]
         else:
             return []
-
+    
+    # DONE
     def validate_transaction(self, transaction: Transaction,
                              chain: Optional[List[Block]] = None):
         chain = chain if chain else self.chain
@@ -128,28 +156,39 @@ class Blockchain:
                 summ -= trans.amount
             elif trans.reciever == sender:
                 summ += trans.amount
-        if summ > 0:
+        if summ - transaction.amount >= 0:
             return True
         else:
             return False
 
-    def new_transaction(self, sender, recipient, amount):
+    # DONE
+    def new_transaction(self, sender: str,
+                        reciever: str,
+                        amount: int,
+                        signature: str):
         """
         Creates a new transaction to go into the next mined Block
-
+        
         :param sender: Address of the Sender
         :param recipient: Address of the Recipient
         :param amount: Amount
         :return: The index of the Block that will hold this transaction
         """
-        self.transactions_pull.append({
-            'sender': sender,
-            'recipient': recipient,
-            'amount': amount,
-        })
+        transaction = Transaction(sender, reciever, amount, signature)
+        if not self.validate_transaction(transaction):
+            return FAIL
+        self.transactions_pull.append(transaction)
+        return SUCCESS
 
-        return self.last_block['index'] + 1
-
+    # TODO: Update this shit for multiprocessing!
+    def new_block(self):
+        '''
+        Creates a new block and mines it. Then it adds it ti the chain
+        '''
+        block = self.proof_of_work()
+        self.add_block(block)
+        return block.index
+    
     @property
     def last_block(self):
         return self.chain[-1]
@@ -159,25 +198,15 @@ class Blockchain:
         assert self.last_block.index == len(self.chain) - 1
         return self.last_block.index
     
-    def proof_of_work(self, last_block):
-        """
-        Simple Proof of Work Algorithm:
-
-         - Find a number p' such that hash(pp') contains leading 4 zeroes
-         - Where p is the previous proof, and p' is the new proof
-         
-        :param last_block: <dict> last Block
-        :return: <int>
-        """
-
-        last_proof = last_block['proof']
-        last_hash = self.hash(last_block)
-
-        proof = 0
-        while self.valid_proof(last_proof, proof, last_hash) is False:
-            proof += 1
-
-        return proof
+    # TODO: Update for multiprocessing!
+    def proof_of_work(self):
+        transaction = self.transactions_pull[0]
+        block = Block(self.last_ind+1, transaction,
+                      DEFAULT_PROOF, self.last_block.hash)
+        while block.hash > self.target:
+            block.proof += 1
+        return block
+        
 
     @staticmethod
     def valid_proof(last_proof, proof, last_hash):
