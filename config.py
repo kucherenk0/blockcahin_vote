@@ -6,3 +6,10 @@ DEFAULT_PROOF = 100
 DEFAULT_TRANSACTION = Transaction('genesys', 'genesys', 0)
 FAIL = -1
 SUCCESS = 0
+
+candidates_list = ['Владимир',
+                   'Путин',
+                   'Молодец',
+                   'Политик',
+                   'Лидер',
+                   'И. Борец']
