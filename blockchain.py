@@ -1,19 +1,10 @@
 import hashlib
 import json
 from time import time
-from urllib.parse import urlparse
-from uuid import uuid4
-from typing import NewType, List, Optional
+from typing import List, Optional
 from transaction import Transaction
+from config import TARGET, DEFAULT_PROOF, DEFAULT_TRANSACTION, FAIL, SUCCESS
 
-import requests
-from flask import Flask, jsonify, request
-
-TARGET = 0x00000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
-DEFAULT_PROOF = 100
-DEFAULT_TRANSACTION = Transaction('genesys', 'genesys', 0)
-FAIL = -1
-SUCCESS = 0
 
 
 class Block:
