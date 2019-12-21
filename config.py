@@ -15,15 +15,11 @@ CANDIDATES_LIST = ['Владимир',
                    'Политик',
                    'Лидер',
                    'И. Борец']
-<<<<<<< HEAD
 
-
-=======
 CANDIDATE_PUBLIC_KEYS = [
 
 ]
 
-LIST_OF_NODES = [
-
+NODES = [
+    '0.0.0.0:5000'
 ]
->>>>>>> 67ec158b877a9769e2b9a8bbf031f4a3ee1afc4d
