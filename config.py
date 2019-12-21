@@ -13,3 +13,10 @@ CANDIDATES_LIST = ['Владимир',
                    'Политик',
                    'Лидер',
                    'И. Борец']
+CANDIDATE_PUBLIC_KEYS = [
+
+]
+
+LIST_OF_NODES = [
+
+]
