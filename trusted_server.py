@@ -35,7 +35,7 @@ def register_voter():
     KEY_WORDS[key_word] = kw_status - 1
     for node in NODES:
         t = Transaction(sender=TRUSTED_USER, reciever=public_key, amount=1)
-        status = request.post('http://' + node + '/transaction', json=t.to_json())
+        status = requests.post('http://' + node + '/transaction', json=t.to_json())
         print(f'{node}: {status}')
     return jsonify({'status': 'approved'}), 200
     
