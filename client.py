@@ -5,7 +5,7 @@ import requests
 
 from os import urandom
 from pygost.gost3410 import prv_unmarshal, public_key, pub_marshal
-from pygost.utils import hexenc
+from pygost.utils import hexenc, hexdec
 from transaction import Transaction
 from config import CANDIDATES_LIST, ELLIPTIC_CURVE, LIST_OF_NODES
 
@@ -36,10 +36,12 @@ def error():
 
 @app.route('/vote', methods=['POST'])
 def vote():
+    print("/vote REACHED")
     data = request.form
+    print(data)
     prv_key = data['private_key']
-    publ_key = public_key(ELLIPTIC_CURVE, prv_key)
-    candidate_public_key = CANDIDATES_LIST[data['vote']]
+    publ_key = public_key(ELLIPTIC_CURVE, prv_unmarshal(hexdec(prv_key)))
+    candidate_public_key = CANDIDATES_LIST[int(data['vote'])]
     t = Transaction(amount=1, sender=list(publ_key), reciever=candidate_public_key)
     t.sign()
     for node in LIST_OF_NODES:
