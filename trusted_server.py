@@ -15,7 +15,9 @@ def candidates():
 
 @server.route('/nodes', methods=['GET'])
 def nodes():
-    return jsonify({'nodes': NODES}), 200
+    exclude = request.environ['REMOTE_ADDR'] + ':' + request.environ['REMOTE_PORT']
+    nodes = [node for node in NODES if node != exclude]
+    return jsonify({'nodes': nodes}), 200
 
 @server.route('/count', methods=['GET'])
 def count_votes():
@@ -35,7 +37,7 @@ def register_voter():
     KEY_WORDS[key_word] = kw_status - 1
     for node in NODES:
         t = Transaction(sender=TRUSTED_USER, reciever=public_key, amount=1)
-        status = request.post('http://' + node + '/transaction', json=t.to_json())
+        status = requests.post('http://' + node + '/transaction', json=t.to_json())
         print(f'{node}: {status}')
     return jsonify({'status': 'approved'}), 200
     
