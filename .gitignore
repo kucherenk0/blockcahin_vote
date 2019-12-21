@@ -6,3 +6,4 @@ __pycache__
 .idea
 signature_test.py
 for_test.py
+blockchain_dump.txt

@@ -3,7 +3,7 @@ import json
 from time import time
 from typing import List, Optional
 from transaction import Transaction
-from config import TARGET, DEFAULT_PROOF, FAIL, SUCCESS, DEFAULT_HASH
+from config import TARGET, DEFAULT_PROOF, FAIL, SUCCESS, DEFAULT_HASH, TRUSTED_USER
 
 DEFAULT_TRANSACTION = Transaction([10, 10], 'genesys', 0)
 
@@ -28,8 +28,8 @@ class Block:
     def dict(self):
         block = {'index': self.index,
                  'transaction': self.transaction.dict(),
-                 'timestamp': self.timestamp,
                  'proof': self.proof,
+                 'timestamp': self.timestamp,
                  'prev_hash': self.prev_hash,
                  'hash': self.hash}
         return block
@@ -45,8 +45,12 @@ class Block:
         :param block: Block
         :return: str hash of the block
         """
+        dct = {'index': block.index,
+               'transaction': block.transaction.dict(),
+               'proof': block.proof,
+               'prev_hash': block.prev_hash}
         # We must make sure that the Dictionary is Ordered, or we'll have inconsistent hashes
-        block_string = json.dumps(block.dict(), sort_keys=True).encode()
+        block_string = json.dumps(dct, sort_keys=True).encode()
         return hashlib.sha256(block_string).hexdigest()
 
     @staticmethod
@@ -165,6 +169,8 @@ class Blockchain:
                              chain: Optional[List[Block]] = None):
         chain = chain if chain else self.chain
         sender = transaction.sender
+        if sender == TRUSTED_USER[1]:
+            return True
         transactions = [block.transaction for block in chain if
                         block.transaction.sender == sender or
                         block.transaction.reciever == sender]
@@ -182,7 +188,7 @@ class Blockchain:
     # TODO: Update this shit for multiprocessing!
     def new_block(self):
         '''
-        Creates a new block and mines it. Then it adds it ti the chain
+        Creates a new block and mines it. Then it adds it to the chain
         '''
         block = self.proof_of_work()
         if not self.add_block(block):
@@ -203,8 +209,12 @@ class Blockchain:
         transaction = self.transactions_pull[0]
         block = Block(self.last_ind+1, transaction,
                       DEFAULT_PROOF, self.last_block.hash)
-        while block.hash > self.target:
+        while int(block.hash, 16) > self.target:
             block.proof += 1
+            block.hash = Block.hash(block)
+            if block.proof % 10000 == 0:
+                print(block.hash)
+        self.transactions_pull.pop(0)
         return block
         
 

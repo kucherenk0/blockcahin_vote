@@ -16,7 +16,6 @@ def get_chain():
         
 @node.route('/transaction', methods=['POST'])
 def post_transaction():
-    print('HERE!!!')
     data = request.get_json() or {}
     print(data)
     if not data:
@@ -29,8 +28,9 @@ def post_transaction():
     if result == FAIL:
         abort(400, f'Incorrect transaction: {transaction}')
     else:
-        blockchain.new_block()
-        return 200
+        import ipdb; ipdb.set_trace()
+        index = blockchain.new_block()
+        return jsonify({'index': index}), 200
     
 @node.route('/block', methods=['POST'])
 def post_block():

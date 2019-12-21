@@ -1,4 +1,4 @@
-from config import ELLIPTIC_CURVE
+from config import ELLIPTIC_CURVE, TRUSTED_USER
 from pygost import gost34112012256
 from pygost.gost3410 import verify, pub_unmarshal, sign, hexdec
 from pygost.utils import hexenc
@@ -46,7 +46,8 @@ class Transaction:
         Добавить проверку корректности транзакции
         с помощью лектронной подписи
         '''
-
+        if self.sender == TRUSTED_USER[1]:
+            return True
         pub_key = self._sender
         data = self.bytes_public_data()
         hashed_data = gost34112012256.new(data).digest()
@@ -60,14 +61,14 @@ class Transaction:
                            'amount': self.amount}, sort_keys=True).encode()
 
     def _list_to_string(self, lst: list):
-        return (str(lst[0]) + str(lst[1]))[-10:]
+        return str(lst[1])[-10:]
 
     def to_json(self):
-        return {'sender': self._sender,
-                  'reciever': self.reciever,
-                  'amount': self.amount,
-                  'signature': self._signature
-                  }
+        return {'sender': [str(i) for i in self._sender],
+                'reciever': self.reciever,
+                'amount': self.amount,
+                'signature': self._signature
+                }
 
 
 
