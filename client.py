@@ -49,7 +49,6 @@ def error():
 @app.route('/vote', methods=['POST'])
 def vote():
     data = request.form
-    print(data)
     prv_key = data['private_key']
     publ_key = public_key(ELLIPTIC_CURVE, prv_unmarshal(hexdec(prv_key)))
     candidate_public_key = CANDIDATES_LIST[int(data['vote'])]
@@ -75,7 +74,7 @@ if __name__ == '__main__':
     from argparse import ArgumentParser
 
     parser = ArgumentParser()
-    parser.add_argument('-p', '--port', default=8080, type=int,
+    parser.add_argument('-p', '--port', default=8001, type=int,
                         help='port to listen on')
     args = parser.parse_args()
     port = args.port

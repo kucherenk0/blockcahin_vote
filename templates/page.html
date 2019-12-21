@@ -77,11 +77,12 @@
                 content_type: 'application/json;charset=UTF-8',
                 statusCode: {
                     200: function (response) {
-                        location.href = (data.valid) ? 'final';
+                        location.href =  'final';
                   },
                   400: function (response) {
-                   location.href = 'error';
-            });
+                      location.href = 'error';
+                  },
+            }});
             return false;
         }
         $('#btnSubmit').click(function () {
