@@ -33,6 +33,7 @@ def voting():
                                  candidates = CANDIDATES_LIST)
         elif res.status_code == 404:
             return render_template('generate_key.html', keyword=False)
+
     except ConnectionError:
         return render_template('error.html')
 
@@ -62,16 +63,10 @@ def vote():
     return "OK", 200
 
 
-@app.route('/keygen', methods=['POST'])
-def generate_key():
-    prv_raw = urandom(32)
-    prv = prv_unmarshal(prv_raw)
-    return prv, 200
-
-
 @app.route('/', methods=['GET'])
 def generation_page():
     return render_template('generate_key.html', keyword=True)
+
 
 if __name__ == '__main__':
     from argparse import ArgumentParser

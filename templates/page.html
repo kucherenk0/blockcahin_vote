@@ -29,11 +29,27 @@
 
                 <div>
                     <input type="radio" value=0 id="radio_1" name="candidate"/>
-                    <label for="radio_1" class="radio"><span>Vladimir</span></label>
+                    <label for="radio_1" class="radio"><span>Владимир</span></label>
                 </div>
                 <div>
                     <input type="radio" value=1 id="radio_2" name="candidate"/>
-                    <label for="radio_2" class="radio"><span>Vladimirovich</span></label>
+                    <label for="radio_2" class="radio"><span>Путин</span></label>
+                </div>
+                <div>
+                    <input type="radio" value=2 id="radio_3" name="candidate"/>
+                    <label for="radio_3" class="radio"><span>Молодец</span></label>
+                </div>
+                <div>
+                    <input type="radio" value=3 id="radio_4" name="candidate"/>
+                    <label for="radio_4" class="radio"><span>Политик</span></label>
+                </div>
+                <div>
+                    <input type="radio" value=4 id="radio_5" name="candidate"/>
+                    <label for="radio_5" class="radio"><span>Лидер</span></label>
+                </div>
+                <div>
+                    <input type="radio" value=5 id="radio_6" name="candidate"/>
+                    <label for="radio_6" class="radio"><span>И. Борец</span></label>
                 </div>
             </div>
         </div>
@@ -60,7 +76,8 @@
                 async: false,
                 content_type: 'application/json;charset=UTF-8',
                 success: function (data, status, xhr) {
-                    location.href = (data.valid) ? 'final' : 'error';
+                    document.
+                    location.href = 'final';
                 },
                 error: function (data, status, error) {
                     alert('error!');
