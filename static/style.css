@@ -169,3 +169,8 @@ button:hover {
     .name-item input, .name-item div {
         width: calc(50% - 20px);
     }
+}
+
+#key_word {
+    margin-left: 26%;
+}
