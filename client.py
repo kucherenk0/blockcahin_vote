@@ -7,7 +7,7 @@ from os import urandom
 from pygost.gost3410 import prv_unmarshal, public_key, pub_marshal
 from pygost.utils import hexenc, hexdec
 from transaction import Transaction
-from config import CANDIDATES_LIST, ELLIPTIC_CURVE, LIST_OF_NODES
+from config import CANDIDATES_LIST, ELLIPTIC_CURVE, NODES
 
 
 app = Flask(__name__)
@@ -44,7 +44,7 @@ def vote():
     candidate_public_key = CANDIDATES_LIST[int(data['vote'])]
     t = Transaction(amount=1, sender=list(publ_key), reciever=candidate_public_key)
     t.sign()
-    for node in LIST_OF_NODES:
+    for node in NODES:
         res = requests.post(f'http://{node}/transaction', json=t.to_json())
     return res, 200
 
