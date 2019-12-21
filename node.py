@@ -288,7 +288,7 @@ def mine(blockchain: Blockchain = None):
             
             for node in nodes:
                 requests.post('http://' + node + '/post_block', 
-                              json.dumps(Block(blockchain.chain[-2:])))
+                              json.dumps(Block.to_json_dict(blockchain.chain[-2:])))
             
 
 
@@ -324,7 +324,7 @@ def post_block():
         abort(400, 'No data!')
     else:
         try:
-            chain = Block.from_json_dict(data)
+            chain = Block.from_json_dict(data['chain'])
         except:
             abort(400, f'Invalid blocks: {data}')
         else:
