@@ -274,15 +274,17 @@ End of Blockchain and Block classes
 def mine(blockchain: Blockchain = None):
     if not blockchain:
         raise ValueError('No blockchain!!!!')
-    nodes, status = requests.get('http://' + TRUSTED_URL + '/nodes')
-    if status == 200:
-        nodes = nodes['nodes']
-    else:
-        raise ValueError('No nodes from trusted server!!!')
+    
     while True:
         if blockchain.transactions_pull:
             print(f'Started mining block {blockchain.last_ind+1}')
             index = blockchain.new_block()
+            
+            nodes, status = requests.get('http://' + TRUSTED_URL + '/nodes')
+            if status == 200:
+                nodes = nodes['nodes']
+            else:
+                raise ValueError('No nodes from trusted server!!!')
             
             for node in nodes:
                 requests.post('http://' + node + '/post_block', 
@@ -321,7 +323,7 @@ def post_block():
         abort(400, 'No data!')
     else:
         try:
-            chain = Block.from_json_data(data)
+            chain = Block.from_json_dict(data)
         except:
             abort(400, f'Invalid blocks: {data}')
         else:
