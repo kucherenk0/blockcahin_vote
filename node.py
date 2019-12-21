@@ -89,11 +89,11 @@ class Block:
     def to_json_dict(chain):
         chain_ = []
         for block in chain:
-            block_ = {'index': self.index,
-                      'transaction': self.transaction,
-                      'proof': self.proof,
-                      'prev_hash': self.prev_hash,
-                      'hash': self.hash}
+            block_ = {'index': block.index,
+                      'transaction': block.transaction.dict(),
+                      'proof': block.proof,
+                      'prev_hash': block.prev_hash,
+                      'hash': block.hash}
             chain_.append(block_)
         return {'chain': chain_}
 
@@ -280,9 +280,12 @@ def mine(blockchain: Blockchain = None):
             print(f'Started mining block {blockchain.last_ind+1}')
             index = blockchain.new_block()
             
-            nodes, status = requests.get('http://' + TRUSTED_URL + '/nodes')
+            response = requests.get('http://' + TRUSTED_URL + '/nodes')
+            status = response.status_code
+            nodes = response.json()
             if status == 200:
-                nodes = nodes['nodes']
+                nodes = [node for node in nodes['nodes'] if node != str_url]
+                print(f'\n\n{nodes}\n\n')
             else:
                 raise ValueError('No nodes from trusted server!!!')
             
@@ -334,8 +337,11 @@ def post_block():
    
    
 if __name__ == '__main__':
+    url = '0.0.0.0'
+    port = 5000
+    str_url = url + ':' + str(port)
     blockchain = Blockchain()
     thread_mine = threading.Thread(target=mine, args=(blockchain, ))
-    thread_node = threading.Thread(target=node.run(host='0.0.0.0', port=5000, threaded=True))
+    thread_node = threading.Thread(target=node.run(host=url, port=port, threaded=True))
     thread_node.start()
     thread_mine.start()

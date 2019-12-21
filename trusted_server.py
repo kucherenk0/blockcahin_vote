@@ -15,8 +15,7 @@ def candidates():
 
 @server.route('/nodes', methods=['GET'])
 def nodes():
-    exclude = request.environ['REMOTE_ADDR'] + ':' + request.environ['REMOTE_PORT']
-    nodes = [node for node in NODES if node != exclude]
+    nodes = NODES
     return jsonify({'nodes': nodes}), 200
 
 @server.route('/count', methods=['GET'])
