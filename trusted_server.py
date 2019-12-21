@@ -21,7 +21,7 @@ def nodes():
 def count_votes():
     pass
 
-@server.route('/register', method=['GET'])
+@server.route('/register', methods=['POST'])
 def register_voter():
     data = request.get_json() or {}
     if not data:
