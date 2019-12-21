@@ -20,6 +20,12 @@ CANDIDATE_PUBLIC_KEYS = [
 
 ]
 
+KEY_WORDS = {
+    'register': 1,
+    'register1': 1,
+    'register2': 1
+}
+
 NODES = [
     '0.0.0.0:5000'
 ]
