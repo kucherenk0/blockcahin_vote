@@ -11,13 +11,17 @@
 <div class="testbox">
     <form action="/">
         <div class="banner">
-            <h1>Vote</h1>
+            <h1>VoteChain</h1>
         </div>
         <div class="item">
-            <label for="name">Name<span class="red">*</span></label>
+            <label for="name">Your Public Key<span class="red"></span></label>
             <div class="name-item">
-                <input id="name" type="text" name="name" placeholder="First" required/>
-                <input id="user_tag" type="text" name="name" placeholder="Last" required/>
+                <input id="public_key" type="text" name="name" placeholder="{{public_key}}", value="{{public_key}}" readonly/>
+               </div>
+            <label for="name1">Your Private Key<span class="red">*</span></label>
+              <div class="name-item">
+                <input id="private_key" type="text" name="name1" placeholder="{{private_key}}", value="{{private_key}}" readonly/>
+
             </div>
         </div>
         <div class="question">
@@ -46,36 +50,24 @@
     $(document).ready(function () {
         function button_handler() {
             const payload = {
-                sender: document.getElementById('user_tag').value,
-                recipient: $("input[name='candidate']:checked").val(),
+                private_key: document.getElementById('private_key').value,
+                vote: $("input[name='candidate']:checked").val(),
             };
             $.ajax({
-                 beforeSend: function(request) {
-                         request.setRequestHeader("Access-Control-Allow-Origin": "*");
-                 },
-                 type: 'GET',
-                 url: "http://0.0.0.0:500/nodes",
-                 success: function (data) {
-                 data.forEach( function(item, i, arr) {
-                    $.ajax({
-                        type: 'POST',
-                        url: item,
-                        data: payload,
-                        async: false,
-                        content_type: 'application/json;charset=UTF-8',
-                        success: function (data, status, xhr) {
-                        location.href = (data.valid) ? 'final' : 'error';
-                    },
-                     error: function (data, status, error) {
-                        alert('error!');
-                        console.log(status);
-                     }
-                    });
-                });
-            }
-
+                type: 'POST',
+                url: 'http://127.0.0.1:8000/vote',
+                data: payload,
+                async: false,
+                content_type: 'application/json;charset=UTF-8',
+                success: function (data, status, xhr) {
+                    location.href = (data.valid) ? 'final' : 'error';
+                },
+                error: function (data, status, error) {
+                    alert('error!');
+                    console.log(status);
+                }
+            });
             return false;
-
         }
         $('#btnSubmit').click(function () {
             button_handler();
