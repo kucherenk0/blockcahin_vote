@@ -9,7 +9,6 @@ from pygost.utils import hexenc, hexdec
 from transaction import Transaction
 from config import CANDIDATES_LIST, ELLIPTIC_CURVE, NODES, TRUSTED_URL
 
-
 app = Flask(__name__)
 
 
@@ -24,17 +23,16 @@ def voting():
 
     data = {'key_word': keyword,
             'public_key': Transaction.list_to_string(publ_key)}
-    try:
-        res = requests.post(f'http://{TRUSTED_URL}/register', json=data)
-        if res.status_code == 200:
-            return render_template('page.html', private_key=hex_prv_key,
-                                 public_key=hex_pbl_key,
-                                 n=len(CANDIDATES_LIST),
-                                 candidates = CANDIDATES_LIST)
-        elif res.status_code == 404:
-            return render_template('generate_key.html', keyword=False)
 
-    except ConnectionError:
+    res = requests.post(f'http://{TRUSTED_URL}/register', json=data)
+    if res.status_code == 200:
+        return render_template('page.html', private_key=hex_prv_key,
+                               public_key=hex_pbl_key,
+                               n=len(CANDIDATES_LIST),
+                               candidates=CANDIDATES_LIST)
+    elif res.status_code == 404:
+        return render_template('generate_key.html', keyword=False)
+    elif res.status_code == 400:
         return render_template('error.html')
 
 
@@ -55,12 +53,17 @@ def vote():
     prv_key = data['private_key']
     publ_key = public_key(ELLIPTIC_CURVE, prv_unmarshal(hexdec(prv_key)))
     candidate_public_key = CANDIDATES_LIST[int(data['vote'])]
-    t = Transaction(amount=1, sender=list(publ_key), reciever=candidate_public_key)
+    t = Transaction(amount=1, sender=list(publ_key),
+                    reciever=candidate_public_key)
     t.sign(prv_unmarshal(hexdec(prv_key)))
-
+    results = []
     for node in NODES:
-        requests.post(f'http://{node}/transaction', json=t.to_json())
-    return "OK", 200
+        results.append(requests.post(f'http://{node}/transaction',
+                                     json=t.to_json()).status_code)
+    if 400 in results:
+        return render_template('error.html')
+    else:
+        return "OK", 200
 
 
 @app.route('/', methods=['GET'])
