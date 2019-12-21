@@ -299,7 +299,8 @@ def get_chain():
         return str(blockchain), 200
     else:
         abort(500)
-        
+
+
 @node.route('/transaction', methods=['POST'])
 def post_transaction():
     data = request.get_json() or {}

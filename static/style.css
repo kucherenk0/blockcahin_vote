@@ -39,7 +39,7 @@ form {
 .banner {
     position: relative;
     height: 250px;
-    background-image: url("putin.jpg");
+    background-image: url("./putin.jpg");
     background-size: cover;
     display: flex;
     justify-content: center;

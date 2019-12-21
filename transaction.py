@@ -15,7 +15,7 @@ class Transaction:
                  signature: str = None):
         signature = signature if signature else 'unsigned'
         self._signature = signature
-        self.sender = self._list_to_string(sender)
+        self.sender = self.list_to_string(sender)
         self._sender = tuple([int(i) for i in sender])
         self.reciever = reciever
         self.amount = int(amount)
@@ -60,7 +60,8 @@ class Transaction:
                            'reciever': self.reciever,
                            'amount': self.amount}, sort_keys=True).encode()
 
-    def _list_to_string(self, lst: list):
+    @staticmethod
+    def list_to_string(lst: list):
         return str(lst[1])[-10:]
 
     def to_json(self):
@@ -69,8 +70,6 @@ class Transaction:
                 'amount': self.amount,
                 'signature': self._signature
                 }
-
-
 
     def dict(self):
         transaction = {'sender': self.sender,

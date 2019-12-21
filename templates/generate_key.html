@@ -13,12 +13,22 @@
         <div class="banner">
             <h1>Generate your private key</h1>
         </div>
-
+        <label for="name1">
+             {% if keyword %}
+             Enter your key_word
+             {% else %}
+             Whrong keyword, try again
+             {% endif %}
+            <span class="red">*</span></label>
+              <div class="name-item">
+                <input id="key_word" type="text" name="keyword"  required/>
+            </div>
         <div class="btn-block">
-            <button id="btnSubmit" type="submit" formaction="http://0.0.0.0:8000/vote" type="button">Genearate</button>
+            <button id="btnSubmit" type="submit" formaction="./vote" type="button">Genearate</button>
         </div>
     </form>
 </div>
 </body>
+
 
 
