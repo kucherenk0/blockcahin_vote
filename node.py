@@ -13,7 +13,8 @@ def get_chain():
         return str(blockchain), 200
     else:
         abort(500)
-        
+
+
 @node.route('/transaction', methods=['POST'])
 def post_transaction():
     data = request.get_json() or {}
@@ -31,7 +32,8 @@ def post_transaction():
         import ipdb; ipdb.set_trace()
         index = blockchain.new_block()
         return jsonify({'index': index}), 200
-    
+
+
 @node.route('/block', methods=['POST'])
 def post_block():
     data = request.get_data() or {}
