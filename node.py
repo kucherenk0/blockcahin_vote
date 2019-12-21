@@ -230,7 +230,7 @@ class Blockchain:
         else:
             return False
 
-    # TODO: Update this shit for multiprocessing!
+
     def new_block(self):
         '''
         Creates a new block and mines it. Then it adds it to the chain
@@ -249,7 +249,7 @@ class Blockchain:
         assert self.last_block.index == len(self.chain) - 1
         return self.last_block.index
     
-    # TODO: Update for multiprocessing!
+
     def proof_of_work(self):
         transaction = self.transactions_pull[0]
         block = Block(self.last_ind+1, transaction,
