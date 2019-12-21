@@ -257,7 +257,8 @@ class Blockchain:
         while int(block.hash, 16) > self.target:
             block.proof += 1
             block.hash = Block.hash(block)
-        
+            if block.proof % 10000 == 0:
+                print(block.hash)
         transactions_pull_lock.acquire()
         self.transactions_pull.pop(0)
         transactions_pull_lock.release()
@@ -285,13 +286,13 @@ def mine(blockchain: Blockchain = None):
             nodes = response.json()
             if status == 200:
                 nodes = [node for node in nodes['nodes'] if node != str_url]
-                print(f'\n\n{nodes}\n\n')
             else:
                 raise ValueError('No nodes from trusted server!!!')
             
             for node in nodes:
                 requests.post('http://' + node + '/post_block', 
                               json.dumps(Block.to_json_dict(blockchain.chain[-2:])))
+            print(f'Mined and sent block {index}')
             
 
 
@@ -342,6 +343,6 @@ if __name__ == '__main__':
     str_url = url + ':' + str(port)
     blockchain = Blockchain()
     thread_mine = threading.Thread(target=mine, args=(blockchain, ))
-    thread_node = threading.Thread(target=node.run(host=url, port=port, threaded=True))
+    thread_node = threading.Thread(target=node.run, kwargs = {'host': url, 'port': port, 'threaded': True})
     thread_node.start()
     thread_mine.start()
