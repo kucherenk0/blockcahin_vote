@@ -333,13 +333,33 @@ def post_block():
             abort(400, f'Invalid blocks: {data}')
         else:
             blockchain.resolve_conflicts(chain)
+            
+@node.route('/count', methods=['GET'])
+def count_votes():
+    response = requests.get(f'http://{TRUSTED_URL}/candidates')
+    if response.status_code != 200:
+        raise ValueError('No candidates!!!')
+    else:
+        candidates = response.json()['candidates']
+        votes = dict.fromkeys(candidates, 0)
+        for block in blockchain.chain:
+            if block.transaction.reciever in candidates:
+                votes[block.transaction.reciever] += 1
+        return jsonify(votes), 200
+        
         
     
    
    
 if __name__ == '__main__':
     url = '0.0.0.0'
-    port = 5000
+    from argparse import ArgumentParser
+
+    parser = ArgumentParser()
+    parser.add_argument('-p', '--port', default=5000, type=int,
+                        help='port to listen on')
+    args = parser.parse_args()
+    port = args.port
     str_url = url + ':' + str(port)
     blockchain = Blockchain()
     thread_mine = threading.Thread(target=mine, args=(blockchain, ))

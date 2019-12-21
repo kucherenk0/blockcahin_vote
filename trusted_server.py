@@ -20,7 +20,13 @@ def nodes():
 
 @server.route('/count', methods=['GET'])
 def count_votes():
-    pass
+    answer = {}
+    for node in NODES:
+        response = requests.get(f'http://{node}/count')
+        if response.status_code == 200:
+            print(response.json())
+            answer[node] = response.json()
+    return jsonify(answer), 200
 
 @server.route('/register', methods=['POST'])
 def register_voter():
