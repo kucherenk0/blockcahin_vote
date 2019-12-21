@@ -24,7 +24,8 @@ CANDIDATE_PUBLIC_KEYS = [
 KEY_WORDS = {
     'register': 1,
     'register1': 1,
-    'register2': 1
+    'register2': 1,
+    'register3': 1
 }
 
 NODES = [

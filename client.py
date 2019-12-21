@@ -28,7 +28,9 @@ def voting():
         res = requests.post(f'http://{TRUSTED_URL}/register', json=data)
         if res.status_code == 200:
             return render_template('page.html', private_key=hex_prv_key,
-                                 public_key=hex_pbl_key)
+                                 public_key=hex_pbl_key,
+                                 n=len(CANDIDATES_LIST),
+                                 candidates = CANDIDATES_LIST)
         elif res.status_code == 404:
             return render_template('generate_key.html', keyword=False)
     except ConnectionError:
@@ -47,7 +49,6 @@ def error():
 
 @app.route('/vote', methods=['POST'])
 def vote():
-    print("/vote REACHED")
     data = request.form
     print(data)
     prv_key = data['private_key']
@@ -55,9 +56,10 @@ def vote():
     candidate_public_key = CANDIDATES_LIST[int(data['vote'])]
     t = Transaction(amount=1, sender=list(publ_key), reciever=candidate_public_key)
     t.sign(prv_unmarshal(hexdec(prv_key)))
+
     for node in NODES:
-        res = requests.post(f'http://{node}/transaction', json=t.to_json())
-    return res, 200
+        requests.post(f'http://{node}/transaction', json=t.to_json())
+    return "OK", 200
 
 
 @app.route('/keygen', methods=['POST'])
